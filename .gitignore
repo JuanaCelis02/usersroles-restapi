@@ -1,2 +1,3 @@
 # Archivos y carpetas a ignorar
 node_modules/
+.env

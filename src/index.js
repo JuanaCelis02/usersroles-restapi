@@ -7,13 +7,17 @@ import "./models/Role.js"
 import "./models/User.js"
 import "./models/UserRole.js"
 
+import dotenv from 'dotenv';
+dotenv.config()
+
+const PORT = process.env.PORT;
 
 async function main(){
     try {
         await sequelize.sync({force:false});
         //await sequelize.authenticate(); comprobar coneccion
-        app.listen(4000)
-        console.log('Server is listening in port', 4000)
+        app.listen(PORT)
+        console.log('Server is listening in port', PORT)
     } catch (error) {
         console.error('Unable to connect to the database', error)
     }
