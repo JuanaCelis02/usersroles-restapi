@@ -288,10 +288,5 @@ export const enviarCorreosSuperadmins = async (req, res) => {
     }
 };
 
-cron.schedule(`${req.body.horaEnvioCorreo.split(':').reverse().join(' ')} * * *`, async () => {
-    console.log('Iniciando proceso de envío de correos superadmins...');
-    await enviarCorreosSuperadmins();
-});
-
 
 
