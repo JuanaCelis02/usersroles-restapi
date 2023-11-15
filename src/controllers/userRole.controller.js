@@ -1,5 +1,9 @@
+import { createTransport } from 'nodemailer';
+import exceljs from 'exceljs';
+import moment from 'moment';
 import { User } from '../models/User.js'
 import { Role } from '../models/Role.js'
+import cron from 'node-cron';
 
 export const createUserRole = async (req, res) => {
     try {
@@ -221,7 +225,7 @@ export const enviarCorreosSuperadmins = async (req, res) => {
         const superadmins = await obtenerSuperadmins();
 
         if (superadmins && superadmins.length > 0) {
-            const horaEnvioCorreo = req.body.horaEnvioCorreo || '00:00:00'; 
+            const horaEnvioCorreo = req.body.horaEnvioCorreo || '00:00:00';
             const fechaEnvioCorreo = moment().startOf('day').add(moment.duration(horaEnvioCorreo));
 
             // Verifica si la hora actual es posterior a la hora de envío configurada
@@ -248,20 +252,21 @@ export const enviarCorreosSuperadmins = async (req, res) => {
                 { header: 'Apellido', key: 'lastName', width: 20 },
             ];
 
-            users.forEach((user) => {
+            superadmins.forEach((superadmin) => {
                 worksheet.addRow({
-                    id: user.id,
-                    name: user.name,
-                    lastName: user.lastName,
+                    id: superadmin.id,
+                    name: superadmin.name,
+                    lastName: superadmin.lastName,
                 });
             });
+
             const xlsBuffer = await workbook.xlsx.writeBuffer();
 
             const fechaActual = moment().format('YYYY-MM-DD HH:mm:ss'); // Obtiene la fecha y hora actual formateada
 
             const mensaje = {
                 from: 'apirestdistribuidos@gmail.com',
-                to: superadmins,
+                to: superadmins.map(superadmin => superadmin.email), 
                 subject: `USUARIOS CREADOS - ${fechaActual}`, // Utiliza la fecha y hora en el asunto
                 text: 'Listado de usuarios adjunto en un archivo XLS.',
                 attachments: [
@@ -282,6 +287,11 @@ export const enviarCorreosSuperadmins = async (req, res) => {
         res.status(500).json({ message: 'Error al enviar el correo electrónico', error });
     }
 };
+
+cron.schedule(`${req.body.horaEnvioCorreo.split(':').reverse().join(' ')} * * *`, async () => {
+    console.log('Iniciando proceso de envío de correos superadmins...');
+    await enviarCorreosSuperadmins();
+});
 
 
 
